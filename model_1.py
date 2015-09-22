@@ -319,7 +319,7 @@ for it in range(50):
                 local_p_weights, local_n_weights)
         #update_pref(user_pref[user], alpha1*lr*der*der_user)
         update_pref(user_pref[user], alpha1*lr, der*der_user, regular)
-
+   
         #update pois
         #print 'update pois...'
         der_pois = pois_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights, user,
