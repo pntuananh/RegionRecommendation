@@ -3,7 +3,7 @@ inputfile = 'FoursquareCheckins20110101-20111231.csv'
 
 #dataset = 'SHTiesData'
 #inputfile = 'FoursquareCheckins.csv'
-
+    
 from collections import defaultdict, Counter
 import itertools
 import numpy as np
