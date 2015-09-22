@@ -12,7 +12,7 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 0.5
+regular = 0.05
 q_regular = 0
 
 reload = 0
@@ -81,13 +81,12 @@ for parts in my_open('hometown_poi.txt'):
 
 training_set = []
 for user, true_pois in user_pois.iteritems():
-    outtowns = defaultdict(list)
+    town_pois = defaultdict(list)
     for poi in true_pois:
-        ot = poi_hometown[poi]
-        if user_hometown[user] != ot:
-            outtowns[ot] += [poi]
+        town = poi_hometown[poi]
+        town_pois[town] += [poi]
 
-    training_set += [(user,ot,pois) for ot,pois in outtowns.iteritems()]
+    training_set += [(user,t,pois) for t,pois in town_pois.iteritems()]
 
 
 def load_Q():
@@ -174,7 +173,7 @@ def get_region_score(user, pois):
     scores = {}
     #pois = list(pois)
     for p in pois:
-        scores[p] = user_pref[user].dot(poi_pref[p])
+        scores[p] = (user_pref[user] + user_pref_d[user]).dot(poi_pref[p])
 
     return scores
 
@@ -244,7 +243,7 @@ def pois_derivative_1(pos_reg, neg_reg, pos_r_weights, neg_r_weights, user,
         if p in neg_reg:
             part2 = compute_part(p, neg_r_weights, local_n_weights)
 
-        der[p] = (part1-part2)*user_pref[user]
+        der[p] = (part1-part2)*(user_pref[user] + user_pref_d[user])
 
     return der
 
@@ -273,8 +272,9 @@ if reload:
         poi = p[0]
         poi_pref[poi] = np.array(map(np.float64,p[1:]))
 else:
-    user_pref = defaultdict(lambda: np.random.random(K)*2 - 1)
-    poi_pref = defaultdict(lambda: np.random.random(K)*2 - 1)
+    user_pref   = defaultdict(lambda: np.random.random(K)*2 - 1)
+    user_pref_d = defaultdict(lambda: np.random.random(K)*2 - 1)
+    poi_pref    = defaultdict(lambda: np.random.random(K)*2 - 1)
 
 print 'Traning size:', len(training_set)
 for it in range(50):
@@ -282,51 +282,51 @@ for it in range(50):
     np.random.shuffle(training_set)
 
     count = 0
-    for user, ot, pois in training_set:
+    for user, town, pois in training_set:
         count += 1
         if count%100==0:
             print '\rtraining instance #%d' % (count,),
 
+        is_hometown = town == user_hometown[user]
         pos_reg, pos_in_p_reg = sample_pos_region(pois)
-        neg_reg, pos_in_n_reg = sample_neg_region(ot,pois,len(pos_in_p_reg))
-
-        if neg_reg is None:
-            continue
-
-        top_pois_pos_reg = set(sorted([p for p in pos_reg], key=lambda x:len(poi_users[x]),reverse=True)[:5])
-        top_pois_neg_reg = set(sorted([p for p in neg_reg], key=lambda x:len(poi_users[x]),reverse=True)[:5])
-
-
-        pos_r_scores = get_region_score(user,pos_reg,)
-        pos_q_r_scores, pos_r_weights, local_p_weights = get_region_q_score(pos_r_scores,top_pois_pos_reg)
-
-        neg_r_scores = get_region_score(user,neg_reg)
-        neg_q_r_scores, neg_r_weights, local_n_weights = get_region_q_score(neg_r_scores,top_pois_neg_reg)
+        neg_reg, pos_in_n_reg = sample_neg_region(town,pois,len(pos_in_p_reg))
 
         ####rank regions
-        score_of_pos_reg = sum(w*pos_q_r_scores[p] for p,w in pos_r_weights.iteritems())
-        score_of_neg_reg = sum(w*neg_q_r_scores[p] for p,w in neg_r_weights.iteritems())
-        try:
-            der = 1/(1+np.exp(score_of_pos_reg-score_of_neg_reg))
-        except:
-            print score_of_pos_reg, score_of_neg_reg
-            der = 1.0 if score_of_pos_reg < score_of_neg_reg else 0.0
+        if not is_hometown:
+            if neg_reg is not None:
+                top_pois_pos_reg = set(sorted([p for p in pos_reg], key=lambda x:len(poi_users[x]),reverse=True)[:5])
+                top_pois_neg_reg = set(sorted([p for p in neg_reg], key=lambda x:len(poi_users[x]),reverse=True)[:5])
 
-        pos_reg_tmp = set(pos_r_scores.keys())
-        neg_reg_tmp = set(neg_r_scores.keys())
+                pos_r_scores = get_region_score(user,pos_reg)
+                pos_q_r_scores, pos_r_weights, local_p_weights = get_region_q_score(pos_r_scores,top_pois_pos_reg)
 
-        der_user = user_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights,
-                local_p_weights, local_n_weights)
-        #update_pref(user_pref[user], alpha1*lr*der*der_user)
-        update_pref(user_pref[user], alpha1*lr, der*der_user, regular)
-   
-        #update pois
-        #print 'update pois...'
-        der_pois = pois_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights, user,
-                local_p_weights, local_n_weights)
-        for p,d in der_pois.iteritems():
-            #update_pref(poi_pref[p], alpha1*lr*der*d)
-            update_pref(poi_pref[p], alpha1*lr, der*d, regular)
+                neg_r_scores = get_region_score(user,neg_reg)
+                neg_q_r_scores, neg_r_weights, local_n_weights = get_region_q_score(neg_r_scores,top_pois_neg_reg)
+
+                score_of_pos_reg = sum(w*pos_q_r_scores[p] for p,w in pos_r_weights.iteritems())
+                score_of_neg_reg = sum(w*neg_q_r_scores[p] for p,w in neg_r_weights.iteritems())
+                try:
+                    der = 1/(1+np.exp(score_of_pos_reg-score_of_neg_reg))
+                except:
+                    print score_of_pos_reg, score_of_neg_reg
+                    der = 1.0 if score_of_pos_reg < score_of_neg_reg else 0.0
+
+                pos_reg_tmp = set(pos_r_scores.keys())
+                neg_reg_tmp = set(neg_r_scores.keys())
+
+                der_user = user_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights,
+                        local_p_weights, local_n_weights)
+                #update_pref(user_pref[user], alpha1*lr*der*der_user)
+                update_pref(user_pref[user], alpha1*lr, der*der_user, regular)
+                update_pref(user_pref_d[user], alpha1*lr, der*der_user, regular)
+           
+                #update pois
+                #print 'update pois...'
+                der_pois = pois_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights, user,
+                        local_p_weights, local_n_weights)
+                for p,d in der_pois.iteritems():
+                    #update_pref(poi_pref[p], alpha1*lr*der*d)
+                    update_pref(poi_pref[p], alpha1*lr, der*d, regular)
 
 
         ####rank pois in region
@@ -341,21 +341,29 @@ for it in range(50):
         np.random.shuffle(Ds)
         for pos, neg in Ds:
             try:
-                der = 1/(1+np.exp(pos_r_scores[pos] - pos_r_scores[neg]))
+                u_pref = user_pref[user].copy()
+                if not is_hometown:
+                    u_pref += user_pref_d[user]
+
+                pos_score = u_pref.dot(poi_pref[pos])
+                neg_score = u_pref.dot(poi_pref[neg])
+
+                der = 1/(1+np.exp(pos_score - neg_score))
             except:
-                print pos_r_scores[pos], pos_r_scores[neg]
-                pdb.set_trace()
+                print pos_score, neg_score
 
             #update user
             der_user = poi_pref[pos] - poi_pref[neg] #user_derivative_2(pos_reg, pos, neg)
             #update_pref(user_pref[user], alpha2*lr*der*der_user)
             update_pref(user_pref[user], alpha2*lr, der*der_user, regular)
+            if not is_hometown:
+                update_pref(user_pref_d[user], alpha2*lr, der*der_user, regular)
 
             #update pois
             #update_pref(poi_pref[pos], alpha2*lr*der*user_pref[user])
             #update_pref(poi_pref[neg], -alpha2*lr*der*user_pref[user])
-            update_pref(poi_pref[pos], alpha2*lr, der*user_pref[user], regular)
-            update_pref(poi_pref[neg], alpha2*lr, -der*user_pref[user], regular)
+            update_pref(poi_pref[pos], alpha2*lr, der*u_pref, regular)
+            update_pref(poi_pref[neg], alpha2*lr, -der*u_pref, regular)
 
     print ''
 
@@ -364,10 +372,15 @@ for it in range(50):
     lines = []
     for user, factors in user_pref.iteritems():
         lines.append('%s %s' % (user, ' '.join('%f' % f for f in factors)))
-    write_to_file('model\\user_factors_%f_%f.txt' % (regular, q_regular), lines)
+    write_to_file('model\\user_factors_%f_1.txt' % (regular, ), lines)
+
+    lines = []
+    for user, factors in user_pref_d.iteritems():
+        lines.append('%s %s' % (user, ' '.join('%f' % f for f in factors)))
+    write_to_file('model\\user_factors_d_%f_1.txt' % (regular, ), lines)
 
     lines = []
     for poi, factors in poi_pref.iteritems():
         lines.append('%s %s' % (poi, ' '.join('%f' % f for f in factors)))
-    write_to_file('model\\poi_factors_%f_%f.txt' % (regular, q_regular), lines)
+    write_to_file('model\\poi_factors_%f_1.txt' % (regular, ), lines)
 
