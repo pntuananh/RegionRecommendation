@@ -16,7 +16,7 @@ regular = 0.05
 q_regular = 0
 
 reload = 0
-
+  
 lr = 0.01
 alpha1 = 0.2
 alpha2 = 0.5
