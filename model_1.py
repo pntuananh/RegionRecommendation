@@ -12,7 +12,7 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 0.5
+regular = 5.0
 q_regular = 0
 
 reload = 0
@@ -249,14 +249,14 @@ def pois_derivative_1(pos_reg, neg_reg, pos_r_weights, neg_r_weights, user,
     return der
 
 
-#def update_pref(pref, amount):
-#    pref += amount 
-#    L2 = np.linalg.norm(pref,2)
-#    if L2 > regular:
-#        pref *= regular/L2
+def update_pref(pref, amount, regular):
+    pref += amount 
+    L2 = np.linalg.norm(pref,2)
+    if L2 > regular:
+        pref *= regular/L2
 
-def update_pref(pref, factor, amount, regular):
-    pref += factor * (amount - regular*pref)
+#def update_pref(pref, factor, amount, regular):
+#    pref += factor * (amount - regular*pref)
 
 #training
 if reload:
@@ -317,16 +317,17 @@ for it in range(50):
 
         der_user = user_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights,
                 local_p_weights, local_n_weights)
-        #update_pref(user_pref[user], alpha1*lr*der*der_user)
-        update_pref(user_pref[user], alpha1*lr, der*der_user, regular)
+
+        update_pref(user_pref[user], alpha1*lr*der*der_user, regular)
+        #update_pref(user_pref[user], alpha1*lr, der*der_user, regular)
    
         #update pois
         #print 'update pois...'
         der_pois = pois_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights, user,
                 local_p_weights, local_n_weights)
         for p,d in der_pois.iteritems():
-            #update_pref(poi_pref[p], alpha1*lr*der*d)
-            update_pref(poi_pref[p], alpha1*lr, der*d, regular)
+            update_pref(poi_pref[p], alpha1*lr*der*d, regular)
+            #update_pref(poi_pref[p], alpha1*lr, der*d, regular)
 
 
         ####rank pois in region
@@ -348,14 +349,14 @@ for it in range(50):
 
             #update user
             der_user = poi_pref[pos] - poi_pref[neg] #user_derivative_2(pos_reg, pos, neg)
-            #update_pref(user_pref[user], alpha2*lr*der*der_user)
-            update_pref(user_pref[user], alpha2*lr, der*der_user, regular)
+            update_pref(user_pref[user], alpha2*lr*der*der_user, regular)
+            #update_pref(user_pref[user], alpha2*lr, der*der_user, regular)
 
             #update pois
-            #update_pref(poi_pref[pos], alpha2*lr*der*user_pref[user])
-            #update_pref(poi_pref[neg], -alpha2*lr*der*user_pref[user])
-            update_pref(poi_pref[pos], alpha2*lr, der*user_pref[user], regular)
-            update_pref(poi_pref[neg], alpha2*lr, -der*user_pref[user], regular)
+            update_pref(poi_pref[pos], alpha2*lr*der*user_pref[user], regular)
+            update_pref(poi_pref[neg], -alpha2*lr*der*user_pref[user], regular)
+            #update_pref(poi_pref[pos], alpha2*lr, der*user_pref[user], regular)
+            #update_pref(poi_pref[neg], alpha2*lr, -der*user_pref[user], regular)
 
     print ''
 

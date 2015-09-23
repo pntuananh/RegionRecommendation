@@ -12,7 +12,7 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 0.05
+regular = 0.5
 q_regular = 0
 
 reload = 0
