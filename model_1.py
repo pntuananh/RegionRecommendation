@@ -15,7 +15,7 @@ N = 50
 regular = 5.0
 q_regular = 0
 
-reload = 0
+reload = 1
 
 lr = 0.01
 alpha1 = 0.2
@@ -265,14 +265,19 @@ if reload:
     user_pref = {}
     poi_pref = {}
 
-    for p in my_open('model\\user_factors_%f_%f.txt' % (regular, q_regular)):
-        user = p[0]
-        user_pref[user] = np.array(map(np.float64,p[1:]))
+    try:
+        for p in my_open('model\\user_factors_%f_%f.txt' % (regular, q_regular)):
+            user = p[0]
+            user_pref[user] = np.array(map(np.float64,p[1:]))
 
-    for p in my_open('model\\poi_factors_%f_%f.txt' % (regular, q_regular)):
-        poi = p[0]
-        poi_pref[poi] = np.array(map(np.float64,p[1:]))
-else:
+        for p in my_open('model\\poi_factors_%f_%f.txt' % (regular, q_regular)):
+            poi = p[0]
+            poi_pref[poi] = np.array(map(np.float64,p[1:]))
+    except:
+        print 'reload failed...'
+        reload = False
+
+if not reload:
     user_pref = defaultdict(lambda: np.random.random(K)*2 - 1)
     poi_pref = defaultdict(lambda: np.random.random(K)*2 - 1)
 
