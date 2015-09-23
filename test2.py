@@ -10,7 +10,7 @@ import pdb
 
 import networkx as nx
 
-regular = 0.01
+regular = 0.03
 
 R = 5
 delta_lat = 0.009 
@@ -282,11 +282,11 @@ for target_user in testing:
     assert len(true_pois) >= 3
 
     #sample regions
-    regions = []
-    regions_Q = []
+    regions     = []
+    regions_Q   = []
     regions_Q_p = []
-    regions_N = []
-    regions_CF = []
+    regions_N   = []
+    regions_CF  = []
 
     # sample true regions
     max_n_pos = 0
