@@ -110,7 +110,7 @@ for user, poi_set in training.iteritems():
     for poi in poi_set:
         poi_users[poi].add(user)
 
-
+   
 print 'reading preferences...'
 user_pref = {}
 user_pref_d = {}
