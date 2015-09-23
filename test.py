@@ -1,6 +1,6 @@
 dataset = 'checkin2011'
 inputfile = 'FoursquareCheckins20110101-20111231.csv'
-
+    
 #dataset = 'SHTiesData'
 #inputfile = 'FoursquareCheckins.csv'
     
