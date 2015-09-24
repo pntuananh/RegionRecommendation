@@ -10,7 +10,7 @@ import pdb
 
 import networkx as nx
 
-regular = 0.03
+regular = 0.5
 
 R = 5
 delta_lat = 0.009 
