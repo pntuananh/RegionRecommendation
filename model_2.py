@@ -12,11 +12,11 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 0.05
+regular = 5.0
 q_regular = 0
 
 reload = 0
-  
+ 
 lr = 0.01
 alpha1 = 0.2
 alpha2 = 0.5
