@@ -12,10 +12,10 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 0.05
+regular = 2.0
 q_regular = 0
 
-reload = 0
+reload = 1
 
 lr = 0.01
 alpha1 = 0.2
@@ -258,23 +258,31 @@ def update_pref(pref, amount, regular):
 #    pref += factor * (amount - regular*pref)
 
 #training
+user_pref = {}
+user_pref_d = {}
+poi_pref = {}
+
 if reload:
     print 'reloading...'
 
-    user_pref = {}
-    poi_pref = {}
-
-    for p in my_open('model\\user_factors_%f_%f.txt' % (regular, q_regular)):
+    for p in my_open('model\\user_factors_%f_1.txt' % (regular, )):
         user = p[0]
         user_pref[user] = np.array(map(np.float64,p[1:]))
 
-    for p in my_open('model\\poi_factors_%f_%f.txt' % (regular, q_regular)):
+    for p in my_open('model\\user_factors_d_%f_1.txt' % (regular, )):
+        user = p[0]
+        user_pref_d[user] = np.array(map(np.float64,p[1:]))
+
+    for p in my_open('model\\poi_factors_%f_1.txt' % (regular, )):
         poi = p[0]
         poi_pref[poi] = np.array(map(np.float64,p[1:]))
 else:
-    user_pref   = defaultdict(lambda: np.random.random(K)*2 - 1)
-    user_pref_d = defaultdict(lambda: np.random.random(K)*2 - 1)
-    poi_pref    = defaultdict(lambda: np.random.random(K)*2 - 1)
+    for user in user_pois:
+        user_pref[user]   = np.random.random(K)*2 - 1
+        user_pref_d[user] = np.random.random(K)*2 - 1
+
+    for poi in poi_users:
+        poi_pref[poi]    = np.random.random(K)*2 - 1
 
 print 'Traning size:', len(training_set)
 for it in range(50):
