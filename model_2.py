@@ -12,8 +12,9 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 2.0
+regular = 0.01
 q_regular = 0
+d_regular = 0.02
 
 reload = 1
 
@@ -325,7 +326,7 @@ for it in range(50):
                 der_user = user_derivative_1(pos_reg_tmp, neg_reg_tmp, pos_r_weights, neg_r_weights,
                         local_p_weights, local_n_weights)
                 update_pref(user_pref[user], alpha1*lr*der*der_user, regular)
-                update_pref(user_pref_d[user], alpha1*lr*der*der_user, regular)
+                update_pref(user_pref_d[user], alpha1*lr*der*der_user, d_regular)
 
                 #update_pref(user_pref[user], alpha1*lr, der*der_user, regular)
                 #update_pref(user_pref_d[user], alpha1*lr, der*der_user, regular)
@@ -367,12 +368,12 @@ for it in range(50):
             update_pref(user_pref[user], alpha2*lr*der*der_user, regular)
             #update_pref(user_pref[user], alpha2*lr, der*der_user, regular)
             if not is_hometown:
-                update_pref(user_pref_d[user], alpha2*lr*der*der_user, regular)
+                update_pref(user_pref_d[user], alpha2*lr*der*der_user, d_regular)
                 #update_pref(user_pref_d[user], alpha2*lr, der*der_user, regular)
 
             #update pois
-            update_pref(poi_pref[pos], alpha2*lr*der*user_pref[user], regular)
-            update_pref(poi_pref[neg], -alpha2*lr*der*user_pref[user], regular)
+            update_pref(poi_pref[pos], alpha2*lr*der*u_pref, regular)
+            update_pref(poi_pref[neg], -alpha2*lr*der*u_pref, regular)
             #update_pref(poi_pref[pos], alpha2*lr, der*u_pref, regular)
             #update_pref(poi_pref[neg], alpha2*lr, -der*u_pref, regular)
 
@@ -383,15 +384,15 @@ for it in range(50):
     lines = []
     for user, factors in user_pref.iteritems():
         lines.append('%s %s' % (user, ' '.join('%f' % f for f in factors)))
-    write_to_file('model\\user_factors_%f_1.txt' % (regular, ), lines)
+    write_to_file('model\\user_factors_%f_%f.txt' % (regular, d_regular), lines)
 
     lines = []
     for user, factors in user_pref_d.iteritems():
         lines.append('%s %s' % (user, ' '.join('%f' % f for f in factors)))
-    write_to_file('model\\user_factors_d_%f_1.txt' % (regular, ), lines)
+    write_to_file('model\\user_factors_d_%f_%f.txt' % (regular, d_regular), lines)
 
     lines = []
     for poi, factors in poi_pref.iteritems():
         lines.append('%s %s' % (poi, ' '.join('%f' % f for f in factors)))
-    write_to_file('model\\poi_factors_%f_1.txt' % (regular, ), lines)
+    write_to_file('model\\poi_factors_%f_%f.txt' % (regular, d_regular), lines)
 
