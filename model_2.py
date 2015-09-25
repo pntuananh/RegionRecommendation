@@ -12,11 +12,11 @@ import pdb
 K = 50
 R = 5
 N = 50
-regular = 0.01
+regular = 0.2
 q_regular = 0
-d_regular = 0.02
+d_regular = 0.5
 
-reload = 1
+reload = 0
 
 lr = 0.01
 alpha1 = 0.2
@@ -285,7 +285,7 @@ else:
     for poi in poi_users:
         poi_pref[poi]    = np.random.random(K)*2 - 1
 
-print 'Traning size:', len(training_set)
+print 'Training size:', len(training_set)
 for it in range(50):
     print 'iteration #%d' % it
     np.random.shuffle(training_set)

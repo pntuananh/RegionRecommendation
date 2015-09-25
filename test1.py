@@ -10,7 +10,7 @@ import pdb
 
 import networkx as nx
 
-regular = 0.5
+regular = 0.01
 
 R = 5
 delta_lat = 0.009 
@@ -148,6 +148,7 @@ pre_Q = {}
 pre_Q_p = {}
 pre_pop = {}
 pre_CF = {}
+pre_CF_Q = {}
 
 for t in T:
     pre[t]     = []
@@ -155,6 +156,7 @@ for t in T:
     pre_Q_p[t] = []
     pre_pop[t] = []
     pre_CF[t]  = []
+    pre_CF_Q[t]  = []
 
 
 score_parts = [0,0]
@@ -283,6 +285,7 @@ for target_user in testing:
     regions_Q_p = []
     regions_N = []
     regions_CF = []
+    regions_CF_Q = []
 
     # sample true regions
     max_n_pos = 0
@@ -330,6 +333,8 @@ for target_user in testing:
         sorted_r_CF = sorted([(score_CF.get(p,0),p) for p in reg], reverse=True)
         regions_CF += [sorted_r_CF]
 
+        new_score = get_new_score(reg, score_CF, g_top_pois)
+        regions_CF_Q += [sorted([(new_score.get(p,0),p) for p in reg], reverse=True)]
 
     for poi in true_pois - seen:
         reg = sample_cover_region([poi])
@@ -354,6 +359,8 @@ for target_user in testing:
         sorted_r_CF = sorted([(score_CF.get(p,0),p) for p in reg], reverse=True)
         regions_CF += [sorted_r_CF]
 
+        new_score = get_new_score(reg, score_CF, g_top_pois)
+        regions_CF_Q += [sorted([(new_score.get(p,0),p) for p in reg], reverse=True)]
 
     #if not regions: continue
 
@@ -380,6 +387,9 @@ for target_user in testing:
         
         sorted_r_CF = sorted([(score_CF.get(p,0),p) for p in reg], reverse=True)
         regions_CF += [sorted_r_CF]
+
+        new_score = get_new_score(reg, score_CF, g_top_pois)
+        regions_CF_Q += [sorted([(new_score.get(p,0),p) for p in reg], reverse=True)]
 
         has_neg_region += 1
 
@@ -415,6 +425,10 @@ for target_user in testing:
         else:
             pre_CF[t] += [0.0]
 
+        if predict(regions_CF_Q, t, true_regions):
+            pre_CF_Q[t] += [1.0]
+        else:
+            pre_CF_Q[t] += [0.0]
 
     c += 1
     if c%10 == 0:
@@ -432,8 +446,8 @@ for t in T:
     print 'pre_Q:', sum(pre_Q[t])/len(pre_Q[t])
     print 'pre_Q_p:', sum(pre_Q_p[t])/len(pre_Q_p[t])
     print 'pre_pop:', sum(pre_pop[t])/len(pre_pop[t])
-
     print 'pre_CF:', sum(pre_CF[t])/len(pre_CF[t])
+    print 'pre_CF_Q:', sum(pre_CF_Q[t])/len(pre_CF_Q[t])
     print ''
 
 print target_user
